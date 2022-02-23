@@ -125,6 +125,7 @@ class EngineBuffer : public EngineObject {
 
     bool isTrackLoaded() const;
     TrackPointer getLoadedTrack() const;
+    void ejectTrack();
 
     mixxx::audio::FramePos getExactPlayPos() const;
     double getVisualPlayPos() const;
@@ -177,8 +178,6 @@ class EngineBuffer : public EngineObject {
     void slotControlSeek(double);
     void slotKeylockEngineChanged(double);
 
-    void slotEjectTrack(double);
-
   signals:
     void trackLoaded(TrackPointer pNewTrack, TrackPointer pOldTrack);
     void trackLoadFailed(TrackPointer pTrack, const QString& reason);
@@ -209,8 +208,6 @@ class EngineBuffer : public EngineObject {
     void updateIndicators(double rate, int iBufferSize);
 
     void hintReader(const double rate);
-
-    void ejectTrack();
 
     double fractionalPlayposFromAbsolute(mixxx::audio::FramePos position);
 
@@ -354,7 +351,6 @@ class EngineBuffer : public EngineObject {
     // thread, which is required to avoid segfaults.
     ControlProxy* m_pPassthroughEnabled;
 
-    ControlPushButton* m_pEject;
     ControlObject* m_pTrackLoaded;
 
     // Whether or not to repeat the track when at the end
