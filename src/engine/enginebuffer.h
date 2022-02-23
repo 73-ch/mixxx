@@ -6,6 +6,9 @@
 #include <QMutex>
 #include <cfloat>
 
+#include <ip/UdpSocket.h>
+#include <osc/OscOutboundPacketStream.h>
+
 #include "audio/frame.h"
 #include "control/controlvalue.h"
 #include "engine/cachingreader/cachingreader.h"
@@ -404,6 +407,8 @@ class EngineBuffer : public EngineObject {
     mixxx::audio::SampleRate m_sampleRate;
 
     TrackPointer m_pCurrentTrack;
+
+    UdpTransmitSocket oscTransmitter;
 #ifdef __SCALER_DEBUG__
     QFile df;
     QTextStream writer;

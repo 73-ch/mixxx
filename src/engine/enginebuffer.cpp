@@ -1,6 +1,8 @@
 #include "engine/enginebuffer.h"
 
 #include <QtDebug>
+#include <ip/UdpSocket.h>
+#include <osc/OscOutboundPacketStream.h>
 
 #include "control/controlindicator.h"
 #include "control/controllinpotmeter.h"
@@ -100,6 +102,7 @@ EngineBuffer::EngineBuffer(const QString& group,
           m_bPlayAfterLoading(false),
           m_pCrossfadeBuffer(SampleUtil::alloc(MAX_BUFFER_LEN)),
           m_bCrossfadeReady(false),
+          oscTransmitter(UdpTransmitSocket(IpEndpointName( "127.0.0.1", 7000 ))),
           m_iLastBufferSize(0) {
     // This should be a static assertion, but isValid() is not constexpr.
     DEBUG_ASSERT(kInitialPlayPosition.isValid());
@@ -727,6 +730,7 @@ bool EngineBuffer::updateIndicatorsAndModifyPlay(bool newPlay, bool oldPlay) {
         playPossible = false;
     }
 
+    // ここで再生ポジションが非連続で変化した時に呼ばれている
     return m_pCueControl->updateIndicatorsAndModifyPlay(newPlay, oldPlay, playPossible);
 }
 
@@ -1118,6 +1122,19 @@ void EngineBuffer::process(CSAMPLE* pOutput, const int iBufferSize) {
     //   miscellaneous upkeep issues.
 
     m_sampleRate = mixxx::audio::SampleRate::fromDouble(m_pSampleRate->get());
+
+    std::array<char, 1024> buffer;
+    osc::OutboundPacketStream p( buffer.data(), buffer.size() );
+
+    p << osc::BeginBundleImmediate
+      << osc::BeginMessage( "/position" )
+      << m_group.toStdString().data()
+      << (float)m_pCueControl->getQuantizedCurrentPosition().value() / (float)m_sampleRate.value()
+      << (float) iBufferSize / (float)m_sampleRate.value()
+      << (float)m_speed_old << osc::EndMessage
+      << osc::EndBundle;
+
+    oscTransmitter.Send( p.Data(), p.Size() );
 
     // If the sample rate has changed, force Rubberband to reset so that
     // it doesn't reallocate when the user engages keylock during playback.

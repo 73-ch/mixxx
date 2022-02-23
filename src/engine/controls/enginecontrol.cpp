@@ -90,12 +90,15 @@ void EngineControl::seekAbs(mixxx::audio::FramePos position) {
 }
 
 void EngineControl::seekExact(mixxx::audio::FramePos position) {
+    std::cout << "seekExact" << std::endl;
     if (m_pEngineBuffer) {
         m_pEngineBuffer->seekExact(position);
     }
 }
 
 void EngineControl::seek(double fractionalPosition) {
+    std::cout << "seek" << std::endl;
+
     if (m_pEngineBuffer) {
         m_pEngineBuffer->slotControlSeek(fractionalPosition);
     }

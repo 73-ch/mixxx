@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.19)
 
 # CMAKE_CXX_COMPILER_ID: Distinguish between "AppleClang" and "Clang"
 if(POLICY CMP0025)
@@ -2395,6 +2395,45 @@ add_library(ReplayGain STATIC EXCLUDE_FROM_ALL
 )
 target_include_directories(mixxx-lib SYSTEM PRIVATE lib/replaygain)
 target_link_libraries(mixxx-lib PRIVATE ReplayGain)
+
+# oscpack
+IF(WIN32)
+  set(IpSystemTypePath lib/oscpack/ip/win32)
+  set(LIBS ${LIBS} Ws2_32 winmm)
+ELSE(WIN32)
+  set(IpSystemTypePath lib/oscpack/ip/posix)
+ENDIF(WIN32)
+
+target_include_directories(mixxx-lib SYSTEM PRIVATE lib/oscpack)
+INCLUDE_DIRECTORIES(lib/oscpack)
+add_library(OSCPACK STATIC
+        lib/oscpack/ip/IpEndpointName.h
+        lib/oscpack/ip/IpEndpointName.cpp
+
+        lib/oscpack/ip/NetworkingUtils.h
+        ${IpSystemTypePath}/NetworkingUtils.cpp
+
+        lib/oscpack/ip/UdpSocket.h
+        ${IpSystemTypePath}/UdpSocket.cpp
+
+        lib/oscpack/ip/PacketListener.h
+        lib/oscpack/ip/TimerListener.h
+
+        lib/oscpack/osc/OscTypes.h
+        lib/oscpack/osc/OscTypes.cpp
+        lib/oscpack/osc/OscHostEndianness.h
+        lib/oscpack/osc/OscException.h
+        lib/oscpack/osc/OscPacketListener.h
+        lib/oscpack/osc/MessageMappingOscPacketListener.h
+        lib/oscpack/osc/OscReceivedElements.h
+        lib/oscpack/osc/OscReceivedElements.cpp
+        lib/oscpack/osc/OscPrintReceivedElements.h
+        lib/oscpack/osc/OscPrintReceivedElements.cpp
+        lib/oscpack/osc/OscOutboundPacketStream.h
+        lib/oscpack/osc/OscOutboundPacketStream.cpp
+)
+
+target_link_libraries(mixxx-lib PRIVATE OSCPACK)
 
 # Reverb
 add_library(Reverb STATIC EXCLUDE_FROM_ALL lib/reverb/Reverb.cc)
